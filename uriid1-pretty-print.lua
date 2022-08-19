@@ -27,7 +27,7 @@ local current_theme = 16
 -- Debug
 M.escape_format = true
 M.show_comments = false
-M.debug = false
+M.debug = true
 
 local themes = {
     -- color theme using 16 ansi colors
@@ -199,6 +199,7 @@ function table2string(t, tabs_count, recurse, comment)
     for key, val in next, t do
         
         --
+        local p_key = key
         key = efmt(key, true)
         val = efmt(val, false)
 
@@ -220,7 +221,7 @@ function table2string(t, tabs_count, recurse, comment)
             -- Debug
             local str_debug = ''
             if M.debug then
-                str_debug = (' %s'):format(tostring(t[key]))
+                str_debug = (' %s'):format(tostring(t[p_key]))
             end
 
             res = res .. rep_tabs..tocolor(key, 'table')..str_debug..' = '..val_dump
