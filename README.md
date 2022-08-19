@@ -9,6 +9,8 @@ pretty_print.tabs_count    = 4
 pretty_print.tabs_symbol   = ' '
 pretty_print.colorize      = true
 pretty_print.show_comments = true
+pretty_print.escape_format = true
+pretty_print.debug         = true
 
 --
 local pp = pretty_print.prettyPrint
@@ -30,6 +32,7 @@ local tbl = {
         empty_table = {},
     };
 }
+tbl.tbl = tbl -- Recurse
 
 --
 pp(tbl)

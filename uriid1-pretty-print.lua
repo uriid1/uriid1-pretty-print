@@ -24,8 +24,10 @@ M.tabs_symbol = ' '
 M.colorize = true
 local current_theme = 16
 
--- Comments
+-- Debug
+M.escape_format = true
 M.show_comments = false
+M.debug = false
 
 local themes = {
     -- color theme using 16 ansi colors
@@ -62,6 +64,73 @@ local themes = {
         tabs         = "38;5;233",
     },
 }
+
+local special = {
+    [7]  = 'a';
+    [8]  = 'b';
+    [9]  = 't';
+    [10] = 'n';
+    [11] = 'v';
+    [12] = 'f';
+    [13] = 'r';
+}
+
+local controls = {}
+for i = 0, 31 do
+    local c = special[i]
+    if not c then
+        if i < 10 then
+            c = "00" .. tostring(i)
+        else
+            c = "0" .. tostring(i)
+        end
+    end
+
+    controls[i] = tostring('\\' .. c)
+end
+
+controls[92] = tostring('\\\\')
+controls[34] = tostring('\\"')
+controls[39] = tostring("\\'")
+
+for i = 128, 255 do
+    local c
+    if i < 100 then
+        c = "0" .. tostring(i)
+    else
+        c = tostring(i)
+    end
+
+    controls[i] = tostring('\\' .. c)
+end
+
+local function stringEscape(c)
+    return controls[string.byte(c, 1)]
+end
+
+local function efmt(str, is_key)
+
+    if type(str) ~= 'string' then
+        return str
+    end
+
+    if not M.escape_format then
+        return str
+    end
+
+    local fmt = string.gsub(str, '[%c\\\128-\255]', stringEscape)
+    if is_key then
+        if not (fmt == str) then
+            if tonumber(str) then
+                return "["..fmt.."]"
+            end
+
+            return "['"..fmt.."']"
+        end
+    end
+
+    return fmt
+end
 
 local function tocolor(str, val_type)
     if not themes[current_theme] then
@@ -117,31 +186,39 @@ function table2string(t, tabs_count, recurse, comment)
     -- Parse
     comment = comment or {}
     for key, val in next, t do
+        
+        --
+        key = efmt(key, true)
+        val = efmt(val, false)
+
         if type(val) == 'table' then
-
-            table.insert(comment, tonumber(key) and '['..key..']' or key)
-            local val_dump = table2string(val, tabs_count + 1, true, comment)
-            local rep_tabs = tocolor(string.rep(tabs, tabs_count), 'tabs')
-
-            -- arr check
-            if tonumber(key) then
-                res = res .. rep_tabs..'['..tocolor(key, 'table')..']'..' = '..val_dump
+           
+            -- Overflow handle
+            local val_dump = ''
+            if not (t == val) then
+                -- Add comment
+                table.insert(comment, tonumber(key) and '['..key..']' or key)
+                --
+                val_dump = table2string(val, tabs_count + 1, true, comment)
             else
-                res = res .. rep_tabs..tocolor(key, 'table')..' = '..val_dump
+                val_dump = tostring(t)..';'
             end
 
+            local rep_tabs = tocolor(string.rep(tabs, tabs_count), 'tabs')
+
+            -- Debug
+            local str_debug = ''
+            if M.debug then
+                str_debug = (' %s'):format(tostring(t[key]))
+            end
+
+            res = res .. rep_tabs..tocolor(key, 'table')..str_debug..' = '..val_dump
             res = res .. '\n'
         else
             val = type_format(val)
             local rep_tabs = tocolor(string.rep(tabs, tabs_count), 'tabs')
 
-            -- arr check
-            if tonumber(key) then
-                res = res .. rep_tabs..'['..tocolor(key, 'string')..']'..' = '..val
-            else
-                res = res .. rep_tabs..tocolor(key, 'string')..' = '..val
-            end
-
+            res = res .. rep_tabs..tocolor(key, 'string')..' = '..val
             res = res .. ',\n'
         end
     end
@@ -168,7 +245,7 @@ local function console_write(fs, s)
         repeat
             local n, e = uv.try_write(fs, s)
             if n then
-                s = s:sub(n+1)
+                s = s:sub(n + 1)
                 n = 0
             else
                 if e:match('^EAGAIN') then
@@ -199,6 +276,7 @@ M.prettyPrint = function(...)
 end
 
 if uv.guess_handle(1) == 'tty' then
+    -- TTY handles represent a stream for the console.
     stdout = assert(uv.new_tty(1, false))
 
     -- auto-detect when 16 color mode should be used
