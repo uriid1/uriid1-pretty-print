@@ -123,6 +123,8 @@ local function efmt(str, is_key)
 
             return str
         end
+
+        return str
     end
 
     local fmt = string.gsub(str, '[%c\\\128-\255]', stringEscape)
