@@ -110,12 +110,19 @@ end
 
 local function efmt(str, is_key)
 
-    if type(str) ~= 'string' then
+    local type_check = type(str)
+    if (type_check ~= 'string') and (type_check ~= 'number') then
         return str
     end
 
     if not M.escape_format then
-        return str
+        if is_key then
+            if tonumber(str) then
+                return "["..str.."]"
+            end
+
+            return str
+        end
     end
 
     local fmt = string.gsub(str, '[%c\\\128-\255]', stringEscape)
@@ -126,6 +133,10 @@ local function efmt(str, is_key)
             end
 
             return "['"..fmt.."']"
+        end
+
+        if tonumber(str) then
+            return "["..fmt.."]"
         end
     end
 
