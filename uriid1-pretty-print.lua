@@ -19,7 +19,6 @@ local stdout
 -- Tabs Setup
 M.tabs_count = 2
 M.tabs_symbol = ' '
-local tabs = string.rep(M.tabs_symbol, M.tabs_count)
 
 -- Theme Setup
 M.colorize = true
@@ -103,6 +102,7 @@ end
 
 local table2string
 function table2string(t, tabs_count, recurse, comment)
+    local tabs = string.rep(M.tabs_symbol, M.tabs_count)
     tabs_count = tabs_count or 1
     local res = '{\n'
 
