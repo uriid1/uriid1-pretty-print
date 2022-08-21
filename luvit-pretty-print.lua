@@ -201,7 +201,7 @@ function table2string(t, tabs_count, recurse, comment)
     for key, val in next, t do
         
         --
-        local p_key = key
+        local raw_key = key
         key = efmt(key, true)
         val = efmt(val, false)
 
@@ -223,7 +223,7 @@ function table2string(t, tabs_count, recurse, comment)
             -- Debug
             local str_debug = ''
             if M.debug then
-                str_debug = (' %s'):format(tostring(t[p_key]))
+                str_debug = (' %s'):format(tostring(t[raw_key]))
             end
 
             res = res .. rep_tabs..tocolor(key, 'table')..str_debug..' = '..val_dump
@@ -282,12 +282,49 @@ M.prettyPrint = function(...)
         if arg_type == 'table' then
             arguments[i] = table2string(arguments[i])
         else
-            arguments[i] = type_format(arguments[i])
+            arguments[i] = type_format( efmt(arguments[i], false) )
         end
     end
 
     console_write(stdout, table.concat(arguments, ",\t"))
 end
+
+-- Pretty Dump
+M.prettyDump = table2string
+
+-- Dump
+-- https://github.com/uriid1/lua-serialize/blob/main/serialize.lua
+-- Recursive serialization
+local serialize_map = {}
+
+function M.dump(val)
+    return serialize_map[type(val)](val)
+end
+
+serialize_map = {
+    ["boolean"] = tostring,
+    ["string"]  = function(v)
+        return "'"..efmt(v, false).."'"
+    end,
+
+    ["number"]  = function(v)
+        if      v ~=  v     then return  "0/0";      --  nan
+        elseif  v ==  1 / 0 then return  "1/0";      --  inf
+        elseif  v == -1 / 0 then return "-1/0"; end  -- -inf
+        return tostring(v)
+    end,
+
+    ["table"] = function(tbl)
+        local tmp = {}
+        for k, v in pairs(tbl) do
+            if serialize_map[type(v)] and tbl ~= v then
+                tmp[#tmp + 1] = "[" .. M.dump(k) .. "]=" .. M.dump(v)
+            end
+        end
+
+        return "{" .. table.concat(tmp, ",") .. "}"
+    end;
+}
 
 if uv.guess_handle(1) == 'tty' then
     -- TTY handles represent a stream for the console.

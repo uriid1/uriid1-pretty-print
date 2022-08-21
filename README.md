@@ -2,18 +2,22 @@
 ![Screenshot](https://github.com/uriid1/scrfmp/blob/main/uriid1-pretty-print/pp.png) <br>
 
 ```lua
-local pretty_print = require("uriid1-pretty-print")
+-- load module pp
+local m_pp = require("luvit-pretty-print")  -- For luvit
+-- local lpp = require("lua-pretty-print")  -- For lua
 
 -- setup
-pretty_print.tabs_count    = 4
-pretty_print.tabs_symbol   = ' '
-pretty_print.colorize      = true
-pretty_print.show_comments = true
-pretty_print.escape_format = true
-pretty_print.debug         = true
+-- lpp.current_theme = 256 -- Only for lua version pp
+m_pp.tabs_count    = 4
+m_pp.tabs_symbol   = ' '
+m_pp.colorize      = true
+m_pp.show_comments = true
+m_pp.escape_format = true
+m_pp.debug         = true
 
 --
-local pp = pretty_print.prettyPrint
+local pp = m_pp.prettyPrint
+local dump = m_pp.dump
 
 local tbl = {
     message = {
@@ -36,4 +40,5 @@ tbl.tbl = tbl -- Recurse
 
 --
 pp(tbl)
+pp(dump(tbl))
 ```
