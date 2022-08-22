@@ -183,7 +183,7 @@ local function type_format(val)
 end
 
 local table2string
-function table2string(t, tabs_count, recurse, comment)
+function table2string(t, tabs_count, recurse, comment, t_stack)
     local tabs = string.rep(M.tabs_symbol, M.tabs_count)
     tabs_count = tabs_count or 1
     local res = '{\n'
@@ -198,6 +198,8 @@ function table2string(t, tabs_count, recurse, comment)
 
     -- Parse
     comment = comment or {}
+    -- Те таблицы, в которые уже было вхождение
+    t_stack = t_stack or {}
     for key, val in next, t do
         
         --
@@ -209,11 +211,13 @@ function table2string(t, tabs_count, recurse, comment)
            
             -- Overflow handle
             local val_dump = ''
-            if not (t == val) then
+            if (tabs_count < 20) and (not t_stack[key]) then
+                --
+                t_stack[key] = true
                 -- Add comment
                 table.insert(comment, tonumber(key) and '['..key..']' or key)
-                --
-                val_dump = table2string(val, tabs_count + 1, true, comment)
+                -- Recurse dump
+                val_dump = table2string(val, tabs_count + 1, true, comment, t_stack)
             else
                 val_dump = tostring(t)..';'
             end
@@ -297,8 +301,9 @@ M.prettyDump = table2string
 -- Recursive serialization
 local serialize_map = {}
 
-function M.dump(val)
-    return serialize_map[type(val)](val)
+function M.dump(val, t_stack)
+    t_stack = t_stack or {}
+    return serialize_map[type(val)](val, t_stack)
 end
 
 serialize_map = {
@@ -314,11 +319,12 @@ serialize_map = {
         return tostring(v)
     end,
 
-    ["table"] = function(tbl)
+    ["table"] = function(tbl, t_stack)
         local tmp = {}
         for k, v in pairs(tbl) do
-            if serialize_map[type(v)] and tbl ~= v then
-                tmp[#tmp + 1] = "[" .. M.dump(k) .. "]=" .. M.dump(v)
+            if serialize_map[type(v)] and (not t_stack[k]) then
+                t_stack[k] = true
+                tmp[#tmp + 1] = "[" .. M.dump(k, t_stack) .. "]=" .. M.dump(v, t_stack)
             end
         end
 
