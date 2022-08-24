@@ -310,7 +310,7 @@ end
 serialize_map = {
     ["boolean"] = tostring,
     ["string"]  = function(v)
-        return "'"..efmt(v, false).."'"
+        return "'"..string.gsub(v, '[%c\\\128-\255]', stringEscape).."'"
     end,
 
     ["number"]  = function(v)
@@ -320,10 +320,10 @@ serialize_map = {
         return tostring(v)
     end,
 
-    ["table"] = function(tbl, t_stack)
+    ["table"] = function(t, t_stack)
         local tmp = {}
-        for k, v in pairs(tbl) do
-            if serialize_map[type(v)] and (not t_stack[k]) then
+        for k, v in pairs(t) do
+            if serialize_map[type(v)] and (not t_stack[k]) and (v ~= t) then
                 t_stack[k] = true
                 tmp[#tmp + 1] = "[" .. M.dump(k, t_stack) .. "]=" .. M.dump(v, t_stack)
             end
