@@ -4,10 +4,10 @@
 ```lua
 -- load module pp
 local m_pp = require("luvit-pretty-print")  -- For luvit
--- local lpp = require("lua-pretty-print")  -- For lua
+-- local m_pp = require("lua-pretty-print")  -- For lua, luajit, luau
 
 -- setup
--- lpp.current_theme = 256 -- Only for lua version pp
+-- m_pp.current_theme = 256 -- Only for lua version pp
 m_pp.tabs_count    = 4
 m_pp.tabs_symbol   = ' '
 m_pp.colorize      = true

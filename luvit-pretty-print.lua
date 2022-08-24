@@ -25,6 +25,7 @@ M.colorize = true
 local current_theme = 16
 
 -- Debug
+M.count_occurrences = 25
 M.escape_format = true
 M.show_comments = false
 M.debug = true
@@ -211,7 +212,7 @@ function table2string(t, tabs_count, recurse, comment, t_stack)
            
             -- Overflow handle
             local val_dump = ''
-            if (tabs_count < 20) and (not t_stack[key]) then
+            if (tabs_count < M.count_occurrences) and (not t_stack[key]) then
                 --
                 t_stack[key] = true
                 -- Add comment
