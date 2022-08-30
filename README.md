@@ -2,17 +2,21 @@
 ![Screenshot](https://github.com/uriid1/scrfmp/blob/main/uriid1-pretty-print/pp.png) <br>
 
 ```lua
--- load module pp
-local m_pp = require("luvit-pretty-print")  -- For luvit
--- local m_pp = require("lua-pretty-print")  -- For lua, luajit, luau
+-- local m_pp = require("luvit-pretty-print")  -- For luvit
+local m_pp = require("lua-pretty-print")  -- For lua, luajit, luau
 
--- setup
--- m_pp.current_theme = 256 -- Only for lua version pp
-m_pp.tabs_count    = 4
-m_pp.tabs_symbol   = ' '
-m_pp.colorize      = true
-m_pp.show_comments = true
-m_pp.escape_format = true
+-- Setup
+-- Only for lua version
+-- in luvit, the color scheme is set automatically
+m_pp.current_theme = 256
+
+-- Turn off colors
+-- m_pp.colorize = false
+
+m_pp.tabs_count    = 2
+m_pp.tabs_symbol   = '->'
+m_pp.show_comments = true 
+m_pp.string_to_dec = true -- Converting a string to a decimal value
 m_pp.debug         = true
 
 --
@@ -35,10 +39,24 @@ local tbl = {
         thread = '',
         empty_table = {},
     };
-}
-tbl.tbl = tbl -- Recurse
 
---
+    ['hello'] = {
+        1, 2, 3
+    }
+}
+
+-- Recusrse test 1
+tbl.recurse1 = tbl
+tbl.recurse2 = tbl.recurse1
+tbl.recurse2.hello = 'hello'
+
+-- Recusrse test 2
+tbl.recurse3 = tbl.recurse1.recurse1
+tbl.recurse4 = tbl.recurse1.recurse1.message
+
+-- Pretty print
 pp(tbl)
-pp(dump(tbl))
+
+-- Dump
+-- pp( dump(tbl) )
 ```

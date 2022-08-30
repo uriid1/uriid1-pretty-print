@@ -26,7 +26,7 @@ local current_theme = 16
 
 -- Debug
 M.count_occurrences = 25
-M.escape_format = true
+M.string_to_dec = true
 M.show_comments = false
 M.debug = true
 
@@ -116,7 +116,7 @@ local function efmt(str, is_key)
         return str
     end
 
-    if not M.escape_format then
+    if not M.string_to_dec then
         if is_key then
             if tonumber(str) then
                 return "["..str.."]"
@@ -197,10 +197,21 @@ function table2string(t, tabs_count, recurse, comment, t_stack)
         end
     end
 
+    -- Запоминаем ссылки на таблицы
+    -- до и после вхождения
+    t_stack = t_stack or {}
+    for key,_ in next, t do
+
+        local t_link = t[key]
+
+        if type(t_link) == 'table' then
+            t_stack[t_link] = true
+        end
+
+    end
+
     -- Parse
     comment = comment or {}
-    -- Те таблицы, в которые уже было вхождение
-    t_stack = t_stack or {}
     for key, val in next, t do
         
         --
@@ -209,14 +220,27 @@ function table2string(t, tabs_count, recurse, comment, t_stack)
         val = efmt(val, false)
 
         if type(val) == 'table' then
-           
+            
+            local f = {}
+            for k,_ in next, t[raw_key] do
+
+                if t_stack[ t[k] ] then
+                    f[k]= true
+                end
+                
+            end
+
             -- Overflow handle
             local val_dump = ''
-            if (tabs_count < M.count_occurrences) and (not t_stack[key]) then
-                --
-                t_stack[key] = true
+            if (tabs_count < M.count_occurrences) and
+                                not f[raw_key]    and
+                                t_stack[ t[raw_key] ]
+            then
+                t_stack[ t[raw_key] ] = false
+                
                 -- Add comment
                 table.insert(comment, tonumber(key) and '['..key..']' or key)
+                
                 -- Recurse dump
                 val_dump = table2string(val, tabs_count + 1, true, comment, t_stack)
             else
