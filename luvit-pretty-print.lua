@@ -143,7 +143,7 @@ local function efmt(str, is_key)
         end
     end
 
-    return fmt
+    return tonumber(fmt) or fmt
 end
 
 local function tocolor(str, val_type)
@@ -210,12 +210,25 @@ function table2string(t, tabs_count, recurse, comment, t_stack)
 
     end
 
+    -- Сначала парсим таблицы, потом всё остальное
+    local to_parse = {}
+    for k, v in next, t do
+        if type(t[k]) == 'table' then
+            table.insert(to_parse, 1, { key = k, val = v })
+        else
+            table.insert(to_parse, { key = k, val = v })
+        end
+    end
+
     -- Parse
     comment = comment or {}
-    for key, val in next, t do
+    for i = 1, #to_parse do
+
+        local key = to_parse[i].key
+        local val = to_parse[i].val
         
-        --
         local raw_key = key
+        -- local raw_val = val
         key = efmt(key, true)
         val = efmt(val, false)
 
@@ -258,10 +271,9 @@ function table2string(t, tabs_count, recurse, comment, t_stack)
             res = res .. rep_tabs..tocolor(key, 'table')..str_debug..' = '..val_dump
             res = res .. '\n'
         else
-            val = type_format(val)
             local rep_tabs = tocolor(string.rep(tabs, tabs_count), 'tabs')
 
-            res = res .. rep_tabs..tocolor(key, 'string')..' = '..val
+            res = res .. rep_tabs..tocolor(key, 'string')..' = '..type_format(val)
             res = res .. ',\n'
         end
     end
@@ -279,7 +291,7 @@ function table2string(t, tabs_count, recurse, comment, t_stack)
     end
     comment[#comment] = nil
 
-    return res .. ("%s%s"):format(rep_tabs, '};' .. str_comment)
+    return res .. ("%s%s"):format(rep_tabs, '}'..(recurse and ';' or '') .. str_comment)
 end
 
 local function console_write(fs, s)

@@ -1,6 +1,14 @@
-# Use
 ![Screenshot](https://github.com/uriid1/scrfmp/blob/main/uriid1-pretty-print/pp.png) <br>
 
+# Features
+<b>Customization:</b> 0, 8, 255 color scheme, its own tab character, the number of tab characters is also configurable.<br>
+<b>Debug:</b> In debug mode, links to tables are displayed.<br>
+<b>Comments:</b> Support for comments for long tables.<br>
+<b>Escape-format:</b> In string_to_dec mode, all characters are converted to decimal values.<br>
+<b>Structuring:</b> Tables are printed first, then everything else.<br>
+<b>Portable:</b> Works in lua 5.1, lua 5.2, lua5.3, lua5.4, LuaJIT and in Luvit!<br>
+
+# Use
 ```lua
 -- local m_pp = require("luvit-pretty-print")  -- For luvit
 local m_pp = require("lua-pretty-print")  -- For lua, luajit, luau
