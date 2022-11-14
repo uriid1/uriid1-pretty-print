@@ -19,7 +19,7 @@ M.current_theme = 256
 M.count_occurrences = 25
 M.string_to_dec = true
 M.show_comments = false
-M.debug = true
+M.debug = false
 
 local themes = {
     -- color theme using 16 ansi colors
@@ -138,6 +138,10 @@ local function efmt(str, is_key)
 end
 
 local function tocolor(str, val_type)
+    -- if type(str) ~= 'string' then
+    --     return tostring(str)
+    -- end
+
     if not themes[M.current_theme] then
         return str
     end
@@ -177,16 +181,21 @@ local table2string
 function table2string(t, tabs_count, recurse, comment, t_stack)
     local tabs = string.rep(M.tabs_symbol, M.tabs_count)
     tabs_count = tabs_count or 1
-    local res = '{\n'
+    
+    local res = '{'
+    local is_next_key = next(t)
+    if is_next_key then
+        res = res .. '\n'
+    end
 
     local next_key
     if recurse then
-        next_key = next(t)
+        next_key = is_next_key
         if not next_key then
             res = '{'
         end
     end
-
+    
     -- Запоминаем ссылки на таблицы
     -- до и после вхождения
     t_stack = t_stack or {}
@@ -263,7 +272,7 @@ function table2string(t, tabs_count, recurse, comment, t_stack)
         else
             local rep_tabs = tocolor(string.rep(tabs, tabs_count), 'tabs')
 
-            res = res .. rep_tabs..tocolor(key, 'string')..' = '..type_format(val)
+            res = res .. rep_tabs..tocolor(tostring(key), 'string')..' = '..type_format(val)
             res = res .. ',\n'
         end
     end
